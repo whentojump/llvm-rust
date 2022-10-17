@@ -112,3 +112,13 @@ Consult the
 page for detailed information on configuring and compiling LLVM. You can visit
 [Directory Layout](https://llvm.org/docs/GettingStarted.html#directory-layout)
 to learn about the layout of the source code tree.
+
+### Build Command
+```bash
+mkdir build && cd build
+cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS=-pipe \
+-DCMAKE_CXX_FLAGS=-pipe -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
+-DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_USE_LINKER=mold \
+-DLLVM_ENABLE_ASSERTIONS=ON ../llvm
+cmake --build . --verbose
+```

@@ -19,6 +19,7 @@ add_llvm_component_library(LLVMPasses
   Core
   Coroutines
   IPO
+  InnerUnikernels
   InstCombine
   ObjCARC
   Scalar

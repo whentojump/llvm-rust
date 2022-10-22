@@ -42,6 +42,8 @@ if (LLVM_INCLUDE_TESTS)
 endif()
 add_subdirectory(WindowsManifest)
 
+# NOTE (2): the first arg points to (3)
+
 set(LLVMCONFIGLIBRARYDEPENDENCIESINC "${LLVM_BINARY_DIR}/tools/llvm-config/LibraryDependencies.inc")
 
 # Special components which don't have any source attached but aggregate other
@@ -60,4 +62,7 @@ endif()
 
 # Component post-processing
 LLVMBuildResolveComponentsLink()
+
+# NOTE (3): function `LLVMBuildGenerateCFragment` is defined at (4)
+
 LLVMBuildGenerateCFragment(OUTPUT ${LLVMCONFIGLIBRARYDEPENDENCIESINC})

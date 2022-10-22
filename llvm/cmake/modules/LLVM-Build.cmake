@@ -5,6 +5,11 @@ function(LLVMBuildGenerateCFragment)
 
   # Write C header
   #################
+
+  # NOTE (4): most info about array entries comes from variable `llvmbuild_components`
+  #           which in turn comes from property `LLVM_COMPONENT_LIBS`
+  #           which is in turn set at (5)
+
   get_property(llvmbuild_components GLOBAL PROPERTY LLVM_COMPONENT_LIBS)
   foreach(llvmbuild_component ${llvmbuild_components})
     string(REGEX REPLACE "^LLVM" "" component_name ${llvmbuild_component})

@@ -85,7 +85,11 @@ static void VisitComponent(const std::string &Name,
                                *GetComponentLibraryPath,
                            std::vector<std::string> *Missing,
                            const std::string &DirSep) {
+
+  // NOTE (1): this file includes `LibraryDependencies.inc`, which is generated at (2)
+
   // Lookup the component.
+  // NOTE this line fails
   AvailableComponent *AC = ComponentMap.lookup(Name);
   if (!AC) {
     errs() << "Can't find component: '" << Name << "' in the map. Available components are: ";

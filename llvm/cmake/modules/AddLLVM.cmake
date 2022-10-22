@@ -436,6 +436,8 @@ endfunction(set_windows_version_resource_properties)
 #      LLVM which means that the source resides in llvm/lib/ and it is a
 #      candidate for inclusion into libLLVM.so.
 #   )
+
+# NOTE (6): this function... ah, I know the problem
 function(llvm_add_library name)
   cmake_parse_arguments(ARG
     "MODULE;SHARED;STATIC;OBJECT;DISABLE_LLVM_LINK_LLVM_DYLIB;SONAME;NO_INSTALL_RPATH;COMPONENT_LIB"
@@ -554,6 +556,7 @@ function(llvm_add_library name)
 
   if(ARG_COMPONENT_LIB)
     set_target_properties(${name} PROPERTIES LLVM_COMPONENT TRUE)
+    # NOTE (5): `name` is the arg for this function `llvm_add_library`, see (6)
     set_property(GLOBAL APPEND PROPERTY LLVM_COMPONENT_LIBS ${name})
   endif()
 

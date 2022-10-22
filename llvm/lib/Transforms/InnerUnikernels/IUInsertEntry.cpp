@@ -14,6 +14,8 @@ STATISTIC(NumInserted,  "Number of entry function inserted");
 
 PreservedAnalyses IUEntryInsertion::run(Module &M,
                                         ModuleAnalysisManager &AM) {
+  errs() << "just to make sure this pass is indeed invoked\n";
+  errs() << M.getName() << "\n";
   // Invalidate all analysis
   return PreservedAnalyses::none();
 }

@@ -862,6 +862,9 @@ struct CounterCoverageMappingBuilder
                     MCDCConditionID ID = 0, MCDCConditionID TrueID = 0,
                     MCDCConditionID FalseID = 0) {
 
+    if (ID) {
+      printf("[clang] pushRegion(), ID=%u\n", ID);
+    }
     if (StartLoc && !FalseCount) {
       MostRecentLocation = *StartLoc;
     }
@@ -1025,6 +1028,9 @@ struct CounterCoverageMappingBuilder
   void createBranchRegion(const Expr *C, Counter TrueCnt, Counter FalseCnt,
                           MCDCConditionID ID = 0, MCDCConditionID TrueID = 0,
                           MCDCConditionID FalseID = 0) {
+    if (ID) {
+      printf("[clang] createBranchRegion(), ID=%u\n", ID);
+    }
     // Check for NULL conditions.
     if (!C)
       return;

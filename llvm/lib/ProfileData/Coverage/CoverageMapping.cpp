@@ -571,9 +571,24 @@ static unsigned getMaxBitmapSize(const CounterMappingContext &Ctx,
   return MaxBitmapID + (SizeInBits / CHAR_BIT);
 }
 
+static int AssertDebugCounter = 0;
+
+static char *RegionKindNames[] = {
+  "CodeRegion",
+  "ExpansionRegion",
+  "SkippedRegion",
+  "GapRegion",
+  "BranchRegion",
+  "MCDCDecisionRegion",
+  "MCDCBranchRegion"
+};
+
 Error CoverageMapping::loadFunctionRecord(
     const CoverageMappingRecord &Record,
     IndexedInstrProfReader &ProfileReader) {
+
+  printf("\n================ loadFunctionRecord =============\n\n");
+
   StringRef OrigFuncName = Record.FunctionName;
   if (OrigFuncName.empty())
     return make_error<CoverageMapError>(coveragemap_error::malformed,
@@ -627,18 +642,59 @@ Error CoverageMapping::loadFunctionRecord(
       Record.MappingRegions[0].Count.isZero() && Counts[0] > 0)
     return Error::success();
 
+  // NOTE NumConds init
   unsigned NumConds = 0;
   const CounterMappingRegion *MCDCDecision;
   std::vector<CounterMappingRegion> MCDCBranches;
 
+  // NOTE A struct: file name, function name, CountedRegions (vec),
+  //      CountedBranchRegions (vec), MCDCRecords (vec) etc
   FunctionRecord Function(OrigFuncName, Record.Filenames);
   for (const auto &Region : Record.MappingRegions) {
+
+    printf("AssertDebugCounter = %d\n", AssertDebugCounter);
+    ++AssertDebugCounter;
+
+    if ( Region.Kind == CounterMappingRegion::MCDCDecisionRegion ||
+         Region.Kind == CounterMappingRegion::MCDCBranchRegion ) {
+        printf("\n-------------------\n");
+        printf("Function.Filenames[%u] = %s\n", Region.FileID, Function.Filenames[Region.FileID].c_str());
+        printf("Function.Filenames[%u] = %s\n", Region.ExpandedFileID, Function.Filenames[Region.ExpandedFileID].c_str());
+        printf("Function.Name = %s\n", Function.Name.c_str());
+        printf("Region.Kind = %s\n", RegionKindNames[Region.Kind]);
+        printf("Region %u:%u -- %u:%u\n", Region.LineStart, Region.ColumnStart, Region.LineEnd, Region.ColumnEnd);
+        if (Region.Kind == CounterMappingRegion::MCDCDecisionRegion) {
+          printf("(MCDC) NumConditions %u\n", Region.MCDCParams.NumConditions);
+          printf("(MCDC) BitmapIdx %u\n", Region.MCDCParams.BitmapIdx);
+        } else {
+          printf("(MCDC) ID %u\n", Region.MCDCParams.ID);
+          printf("(MCDC) TrueID %u\n", Region.MCDCParams.TrueID);
+          printf("(MCDC) FalseID %u\n", Region.MCDCParams.FalseID);
+        }
+        printf("-------------------\n\n");
+        // Cheating for fs/open.c
+        if ( Region.LineStart == 271 ||
+             Region.LineStart == 355 ||
+             Region.LineStart == 314 ||
+             Region.LineStart == 126 ||
+             Region.LineStart == 440 ||
+             Region.LineStart == 26 ) {
+          printf("(Skipped)\n");
+          continue;
+        }
+    }
+
     // If an MCDCDecisionRegion is seen, track the BranchRegions that follow
     // it according to Region.NumConditions.
+
+    // NOTE Such regions look like `x > 1 && x < 2`
     if (Region.Kind == CounterMappingRegion::MCDCDecisionRegion) {
+      // if (NumConds)
+      //   NumConds = 0; // TODO If ignore it this way, run into some other problems
       assert(NumConds == 0);
       MCDCDecision = &Region;
       NumConds = Region.MCDCParams.NumConditions;
+      printf("NumConds = %u\n", NumConds);
       continue;
     }
     Expected<int64_t> ExecutionCount = Ctx.evaluate(Region.Count);
@@ -656,6 +712,8 @@ Error CoverageMapping::loadFunctionRecord(
     // If a MCDCDecisionRegion was seen, store the BranchRegions that
     // correspond to it in a vector, according to the number of conditions
     // recorded for the region (tracked by NumConds).
+
+    // NOTE Such regions look like `x > 1`, `x < 2` etc
     if (NumConds > 0 && Region.Kind == CounterMappingRegion::MCDCBranchRegion) {
       MCDCBranches.push_back(Region);
 
@@ -663,6 +721,7 @@ Error CoverageMapping::loadFunctionRecord(
       // MCDCDecisionRegion, decrement NumConds to make sure we account for
       // them all before we calculate the bitmap of executed test vectors.
       if (--NumConds == 0) {
+        printf("NumConds = %u\n", NumConds);
         // Evaluating the test vector bitmap for the decision region entails
         // calculating precisely what bits are pertinent to this region alone.
         // This is calculated based on the recorded offset into the global
@@ -689,6 +748,7 @@ Error CoverageMapping::loadFunctionRecord(
         Function.pushMCDCRecord(*Record);
         MCDCBranches.clear();
       }
+      printf("NumConds = %u\n", NumConds);
     }
   }
 

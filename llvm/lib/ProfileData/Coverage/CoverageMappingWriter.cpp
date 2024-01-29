@@ -159,6 +159,27 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
                   return CMR.startLoc() <= CMR.endLoc();
                 }) &&
          "Source region does not begin before it ends");
+  printf("[writing covmap] before sorting:\n");
+  for (auto I = MappingRegions.begin(), E = MappingRegions.end(); I != E; ++I) {
+    if (I->Kind == CounterMappingRegion::MCDCBranchRegion) {
+      printf("Branch\n  ID = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+        I->MCDCParams.ID,
+        I->LineStart, I->ColumnStart,
+        I->LineEnd, I->ColumnEnd,
+        I->FileID
+      );
+    }
+    if (I->Kind == CounterMappingRegion::MCDCDecisionRegion) {
+      printf("Decision\n  NumConditions = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+        I->MCDCParams.NumConditions,
+        I->LineStart, I->ColumnStart,
+        I->LineEnd, I->ColumnEnd,
+        I->FileID
+      );
+    }
+  }
+
+  printf("\n[writing covmap] after sorting:\n");
 
   // Sort the regions in an ascending order by the file id and the starting
   // location. Sort by region kinds to ensure stable order for tests.
@@ -240,7 +261,12 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       break;
     case CounterMappingRegion::MCDCBranchRegion:
       // NOTE Observation: at this stage, the regions are intact
-      printf("ID = %u\n", I->MCDCParams.ID);
+      printf("Branch\n  ID = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+        I->MCDCParams.ID,
+        I->LineStart, I->ColumnStart,
+        I->LineEnd, I->ColumnEnd,
+        I->FileID
+      );
       encodeULEB128(unsigned(I->Kind)
                         << Counter::EncodingCounterTagAndExpansionRegionTagBits,
                     OS);
@@ -251,6 +277,12 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       encodeULEB128(unsigned(I->MCDCParams.FalseID), OS);
       break;
     case CounterMappingRegion::MCDCDecisionRegion:
+      printf("Decision\n  NumConditions = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+        I->MCDCParams.NumConditions,
+        I->LineStart, I->ColumnStart,
+        I->LineEnd, I->ColumnEnd,
+        I->FileID
+      );
       encodeULEB128(unsigned(I->Kind)
                         << Counter::EncodingCounterTagAndExpansionRegionTagBits,
                     OS);

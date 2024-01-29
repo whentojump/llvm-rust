@@ -855,6 +855,7 @@ struct CounterCoverageMappingBuilder
   ///
   /// Returns the index on the stack where the region was pushed. This can be
   /// used with popRegions to exit a "scope", ending the region that was pushed.
+  // NOTE handle MCDCBranchRegion
   size_t pushRegion(Counter Count,
                     std::optional<SourceLocation> StartLoc = std::nullopt,
                     std::optional<SourceLocation> EndLoc = std::nullopt,
@@ -889,9 +890,14 @@ struct CounterCoverageMappingBuilder
     return RegionStack.size() - 1;
   }
 
+  // NOTE handle MCDCDecisionRegion
   size_t pushRegion(unsigned BitmapIdx, unsigned Conditions,
                     std::optional<SourceLocation> StartLoc = std::nullopt,
                     std::optional<SourceLocation> EndLoc = std::nullopt) {
+
+    if (Conditions) {
+      printf("[clang] pushRegion(), Conditions=%u\n", Conditions);
+    }
 
     RegionStack.emplace_back(MCDCParameters{BitmapIdx, Conditions}, StartLoc,
                              EndLoc);
@@ -1028,9 +1034,6 @@ struct CounterCoverageMappingBuilder
   void createBranchRegion(const Expr *C, Counter TrueCnt, Counter FalseCnt,
                           MCDCConditionID ID = 0, MCDCConditionID TrueID = 0,
                           MCDCConditionID FalseID = 0) {
-    if (ID) {
-      printf("[clang] createBranchRegion(), ID=%u\n", ID);
-    }
     // Check for NULL conditions.
     if (!C)
       return;

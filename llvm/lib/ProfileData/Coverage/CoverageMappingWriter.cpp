@@ -152,6 +152,7 @@ static void writeCounter(ArrayRef<CounterExpression> Expressions, Counter C,
 }
 
 void CoverageMappingWriter::write(raw_ostream &OS) {
+  printf("[writing covmap]\n");
   // Check that we don't have any bogus regions.
   assert(all_of(MappingRegions,
                 [](const CounterMappingRegion &CMR) {
@@ -238,6 +239,7 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       writeCounter(MinExpressions, FalseCount, OS);
       break;
     case CounterMappingRegion::MCDCBranchRegion:
+      printf("ID = %u\n", I->MCDCParams.ID);
       encodeULEB128(unsigned(I->Kind)
                         << Counter::EncodingCounterTagAndExpansionRegionTagBits,
                     OS);

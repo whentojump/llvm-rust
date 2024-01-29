@@ -851,6 +851,8 @@ struct CounterCoverageMappingBuilder
 
   unsigned getRegionBitmap(const Stmt *S) { return MCDCBitmapMap[S]; }
 
+  unsigned long MCDCDebugCounter;
+
   /// Push a region onto the stack.
   ///
   /// Returns the index on the stack where the region was pushed. This can be
@@ -1049,6 +1051,8 @@ struct CounterCoverageMappingBuilder
       // Alternatively, we can prevent any optimization done via
       // constant-folding by ensuring that ConstantFoldsToSimpleInteger() in
       // CodeGenFunction.c always returns false, but that is very heavy-handed.
+      if (ID)
+        printf("[clang] createBranchRegion(), ID=%u\n", ID);
       if (ConditionFoldsToBool(C))
         popRegions(pushRegion(Counter::getZero(), getStart(C), getEnd(C),
                               Counter::getZero(), ID, TrueID, FalseID));
@@ -1063,6 +1067,7 @@ struct CounterCoverageMappingBuilder
   /// type of region "contains" branch regions, one for each of the conditions.
   /// The visualization tool will group everything together.
   void createDecisionRegion(const Expr *C, unsigned BitmapIdx, unsigned Conds) {
+    printf("[clang] createDecisionRegion(), Conds = %u\n", Conds);
     popRegions(pushRegion(BitmapIdx, Conds, getStart(C), getEnd(C)));
   }
 
@@ -1276,7 +1281,9 @@ struct CounterCoverageMappingBuilder
       SourceManager &SM, const LangOptions &LangOpts)
       : CoverageMappingBuilder(CVM, SM, LangOpts), CounterMap(CounterMap),
         MCDCBitmapMap(MCDCBitmapMap),
-        MCDCBuilder(CVM.getCodeGenModule(), CondIDMap, MCDCBitmapMap) {}
+        MCDCBuilder(CVM.getCodeGenModule(), CondIDMap, MCDCBitmapMap) {
+    MCDCDebugCounter = 0;
+  }
 
   /// Write the mapping data to the output stream
   void write(llvm::raw_ostream &OS) {
@@ -1822,6 +1829,8 @@ struct CounterCoverageMappingBuilder
   }
 
   void VisitBinLAnd(const BinaryOperator *E) {
+    MCDCDebugCounter++;
+
     // Keep track of Binary Operator and assign MCDC condition IDs
     MCDCBuilder.pushAndAssignIDs(E);
 
@@ -1835,8 +1844,10 @@ struct CounterCoverageMappingBuilder
 
     // Process Binary Operator and create MCDC Decision Region if top-level
     unsigned NumConds = 0;
-    if ((NumConds = MCDCBuilder.popAndReturnCondCount(E)))
+    if ((NumConds = MCDCBuilder.popAndReturnCondCount(E))) {
+      printf("[clang] VisitBinLAnd()->createDecisionRegion(), [%lu]\n", MCDCDebugCounter);
       createDecisionRegion(E, getRegionBitmap(E), NumConds);
+    }
 
     // Extract the RHS's Execution Counter.
     Counter RHSExecCnt = getRegionCounter(E);
@@ -1858,6 +1869,9 @@ struct CounterCoverageMappingBuilder
     // - If LHS is TRUE, execution goes to the RHS.
     // - If LHS is FALSE, execution goes to the LHS of the next logical-OR.
     //   If that does not exist, execution exits (ID == 0).
+    if (LHSid) {
+      printf("[clang] VisitBinLAnd()->createBranchRegion(), [%lu]\n", MCDCDebugCounter);
+    }
     createBranchRegion(E->getLHS(), RHSExecCnt,
                        subtractCounters(ParentCnt, RHSExecCnt), LHSid, RHSid,
                        NextOrID);
@@ -1868,6 +1882,9 @@ struct CounterCoverageMappingBuilder
     //   If that does not exist, execution exits (ID == 0).
     // - If RHS is FALSE, execution goes to the LHS of the next logical-OR.
     //   If that does not exist, execution exits (ID == 0).
+    if (RHSid) {
+      printf("[clang] VisitBinLAnd()->createBranchRegion(), [%lu]\n", MCDCDebugCounter);
+    }
     createBranchRegion(E->getRHS(), RHSTrueCnt,
                        subtractCounters(RHSExecCnt, RHSTrueCnt), RHSid,
                        NextAndID, NextOrID);
@@ -1884,6 +1901,8 @@ struct CounterCoverageMappingBuilder
   }
 
   void VisitBinLOr(const BinaryOperator *E) {
+    MCDCDebugCounter++;
+
     // Keep track of Binary Operator and assign MCDC condition IDs
     MCDCBuilder.pushAndAssignIDs(E);
 
@@ -1897,8 +1916,10 @@ struct CounterCoverageMappingBuilder
 
     // Process Binary Operator and create MCDC Decision Region if top-level
     unsigned NumConds = 0;
-    if ((NumConds = MCDCBuilder.popAndReturnCondCount(E)))
+    if ((NumConds = MCDCBuilder.popAndReturnCondCount(E))) {
+      printf("[clang] VisitBinLOr()->createDecisionRegion(), [%lu]\n", MCDCDebugCounter);
       createDecisionRegion(E, getRegionBitmap(E), NumConds);
+    }
 
     // Extract the RHS's Execution Counter.
     Counter RHSExecCnt = getRegionCounter(E);
@@ -1924,6 +1945,9 @@ struct CounterCoverageMappingBuilder
     // - If LHS is TRUE, execution goes to the LHS of the next logical-AND.
     //   If that does not exist, execution exits (ID == 0).
     // - If LHS is FALSE, execution goes to the RHS.
+    if (LHSid) {
+      printf("[clang] VisitBinLOr()->createBranchRegion(), [%lu]\n", MCDCDebugCounter);
+    }
     createBranchRegion(E->getLHS(), subtractCounters(ParentCnt, RHSExecCnt),
                        RHSExecCnt, LHSid, NextAndID, RHSid);
 
@@ -1933,6 +1957,9 @@ struct CounterCoverageMappingBuilder
     //   If that does not exist, execution exits (ID == 0).
     // - If RHS is FALSE, execution goes to the LHS of the next logical-OR.
     //   If that does not exist, execution exits (ID == 0).
+    if (RHSid) {
+      printf("[clang] VisitBinLOr()->createBranchRegion(), [%lu]\n", MCDCDebugCounter);
+    }
     createBranchRegion(E->getRHS(), subtractCounters(RHSExecCnt, RHSFalseCnt),
                        RHSFalseCnt, RHSid, NextAndID, NextOrID);
   }

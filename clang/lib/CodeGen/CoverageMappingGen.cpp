@@ -861,7 +861,7 @@ struct CounterCoverageMappingBuilder
                     std::optional<Counter> FalseCount = std::nullopt,
                     MCDCConditionID ID = 0, MCDCConditionID TrueID = 0,
                     MCDCConditionID FalseID = 0) {
-
+    // NOTE Observation: at this stage, the regions are intact
     if (ID) {
       printf("[clang] pushRegion(), ID=%u\n", ID);
     }

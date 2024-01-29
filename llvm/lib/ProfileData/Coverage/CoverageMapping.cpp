@@ -650,6 +650,33 @@ Error CoverageMapping::loadFunctionRecord(
   // NOTE A struct: file name, function name, CountedRegions (vec),
   //      CountedBranchRegions (vec), MCDCRecords (vec) etc
   FunctionRecord Function(OrigFuncName, Record.Filenames);
+
+  // NOTE Walk all the regions first.
+  //      It turns out the missing regions ARE there. They are just not placed
+  //      in order and appear later than normal
+  for (const auto &Region : Record.MappingRegions) {
+    if ( Region.Kind == CounterMappingRegion::MCDCDecisionRegion ||
+         Region.Kind == CounterMappingRegion::MCDCBranchRegion ) {
+        printf("\n-------------------\n");
+        printf("Function.Filenames[%u] = %s\n", Region.FileID, Function.Filenames[Region.FileID].c_str());
+        printf("Function.Filenames[%u] = %s\n", Region.ExpandedFileID, Function.Filenames[Region.ExpandedFileID].c_str());
+        printf("Function.Name = %s\n", Function.Name.c_str());
+        printf("Region.Kind = %s\n", RegionKindNames[Region.Kind]);
+        printf("Region %u:%u -- %u:%u\n", Region.LineStart, Region.ColumnStart, Region.LineEnd, Region.ColumnEnd);
+        if (Region.Kind == CounterMappingRegion::MCDCDecisionRegion) {
+          printf("(MCDC) NumConditions %u\n", Region.MCDCParams.NumConditions);
+          printf("(MCDC) BitmapIdx %u\n", Region.MCDCParams.BitmapIdx);
+        } else {
+          printf("(MCDC) ID %u\n", Region.MCDCParams.ID);
+          printf("(MCDC) TrueID %u\n", Region.MCDCParams.TrueID);
+          printf("(MCDC) FalseID %u\n", Region.MCDCParams.FalseID);
+        }
+        printf("-------------------\n\n");
+    }
+  }
+
+  printf("##########################################\n\n");
+
   for (const auto &Region : Record.MappingRegions) {
 
     printf("AssertDebugCounter = %d\n", AssertDebugCounter);

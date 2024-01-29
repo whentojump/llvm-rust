@@ -239,6 +239,7 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       writeCounter(MinExpressions, FalseCount, OS);
       break;
     case CounterMappingRegion::MCDCBranchRegion:
+      // NOTE Observation: at this stage, the regions are intact
       printf("ID = %u\n", I->MCDCParams.ID);
       encodeULEB128(unsigned(I->Kind)
                         << Counter::EncodingCounterTagAndExpansionRegionTagBits,

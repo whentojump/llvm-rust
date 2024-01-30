@@ -79,6 +79,7 @@ class CoverageMapError : public ErrorInfo<CoverageMapError> {
 public:
   CoverageMapError(coveragemap_error Err, const Twine &ErrStr = Twine())
       : Err(Err), Msg(ErrStr.str()) {
+    printf("CoverageMapError constructor: %s\n", Msg.c_str());
     assert(Err != coveragemap_error::success && "Not an error");
   }
 

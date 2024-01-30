@@ -53,13 +53,18 @@ void CoverageMappingIterator::increment() {
 
   // Check if all the records were read or if an error occurred while reading
   // the next record.
-  if (auto E = Reader->readNextRecord(Record))
+  if (auto E = Reader->readNextRecord(Record)) {
+    // ERROR PATH 1.5 OK
+    // printf("increment(): %s\n", toString(std::move(E)).c_str());
     handleAllErrors(std::move(E), [&](const CoverageMapError &CME) {
       if (CME.get() == coveragemap_error::eof)
         *this = CoverageMappingIterator();
-      else
+      else {
         ReadErr = CME.get();
+        ReadErrMsg = CME.getMessage();
+      }
     });
+  }
 }
 
 Error RawCoverageReader::readULEB128(uint64_t &Result) {
@@ -425,8 +430,11 @@ Error RawCoverageMappingReader::read() {
   for (unsigned InferredFileID = 0, S = VirtualFileMapping.size();
        InferredFileID < S; ++InferredFileID) {
     if (auto Err = readMappingRegionsSubArray(MappingRegions, InferredFileID,
-                                              VirtualFileMapping.size()))
+                                              VirtualFileMapping.size())) {
+      // ERROR PATH 0 OK
+      // printf("read()->readMappingRegionsSubArray(): %s\n", toString(std::move(Err)).c_str());
       return Err;
+    }
   }
 
   // Set the counters for the expansion regions.
@@ -1282,8 +1290,11 @@ Error BinaryCoverageReader::readNextRecord(CoverageMappingRecord &Record) {
   auto F = ArrayRef(Filenames).slice(R.FilenamesBegin, R.FilenamesSize);
   RawCoverageMappingReader Reader(R.CoverageMapping, F, FunctionsFilenames,
                                   Expressions, MappingRegions);
-  if (auto Err = Reader.read())
+  if (auto Err = Reader.read()) {
+    // ERROR PATH 1 OK
+    // printf("readNextRecord()->read(): %s\n", toString(std::move(Err)).c_str());
     return Err;
+  }
 
   Record.FunctionName = R.FunctionName;
   Record.FunctionHash = R.FunctionHash;

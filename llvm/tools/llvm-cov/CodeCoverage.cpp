@@ -491,6 +491,8 @@ std::unique_ptr<CoverageMapping> CodeCoverageTool::load() {
       ObjectFilenames, PGOFilename, *FS, CoverageArches,
       ViewOpts.CompilationDirectory, BIDFetcher.get(), CheckBinaryIDs);
   if (Error E = CoverageOrErr.takeError()) {
+    // ERROR PATH 5
+    // printf("load()->load(): %s\n", toString(std::move(E)).c_str());
     error("failed to load coverage: " + toString(std::move(E)));
     return nullptr;
   }

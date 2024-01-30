@@ -810,8 +810,11 @@ Error CoverageMapping::loadFromReaders(
     IndexedInstrProfReader &ProfileReader, CoverageMapping &Coverage) {
   for (const auto &CoverageReader : CoverageReaders) {
     for (auto RecordOrErr : *CoverageReader) {
-      if (Error E = RecordOrErr.takeError())
+      if (Error E = RecordOrErr.takeError()) {
+        // ERROR PATH 2 NOT OK
+        // printf("loadFromReaders()->readNextRecord(): %s\n", toString(std::move(E)).c_str());
         return E;
+      }
       const auto &Record = *RecordOrErr;
       if (Error E = Coverage.loadFunctionRecord(Record, ProfileReader))
         return E;
@@ -872,8 +875,11 @@ Error CoverageMapping::loadFromFile(
                        }));
   }
   DataFound |= !Readers.empty();
-  if (Error E = loadFromReaders(Readers, ProfileReader, Coverage))
+  if (Error E = loadFromReaders(Readers, ProfileReader, Coverage)) {
+    // ERROR PATH 3
+    // printf("loadFromFile()->loadFromReaders(): %s\n", toString(std::move(E)).c_str());
     return createFileError(Filename, std::move(E));
+  }
   return Error::success();
 }
 
@@ -900,8 +906,11 @@ Expected<std::unique_ptr<CoverageMapping>> CoverageMapping::load(
   for (const auto &File : llvm::enumerate(ObjectFilenames)) {
     if (Error E =
             loadFromFile(File.value(), GetArch(File.index()), CompilationDir,
-                         *ProfileReader, *Coverage, DataFound, &FoundBinaryIDs))
+                         *ProfileReader, *Coverage, DataFound, &FoundBinaryIDs)) {
+      // ERROR PATH 4
+      // printf("load()->loadFromFile(): %s\n", toString(std::move(E)).c_str());
       return std::move(E);
+    }
   }
 
   if (BIDFetcher) {
@@ -928,8 +937,11 @@ Expected<std::unique_ptr<CoverageMapping>> CoverageMapping::load(
         std::string Path = std::move(*PathOpt);
         StringRef Arch = Arches.size() == 1 ? Arches.front() : StringRef();
         if (Error E = loadFromFile(Path, Arch, CompilationDir, *ProfileReader,
-                                  *Coverage, DataFound))
+                                  *Coverage, DataFound)) {
+          // ERROR PATH 4
+          // printf("load()->loadFromFile(): %s\n", toString(std::move(E)).c_str());
           return std::move(E);
+        }
       } else if (CheckBinaryIDs) {
         return createFileError(
             ProfileFilename,
@@ -1459,9 +1471,13 @@ static std::string getCoverageMapErrString(coveragemap_error Err,
     break;
   }
 
+  OS << "[";
+
   // If optional error message is not empty, append it to the message.
   if (!ErrMsg.empty())
     OS << ": " << ErrMsg;
+
+  OS << "]";
 
   return Msg;
 }

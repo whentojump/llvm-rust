@@ -162,19 +162,19 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
   printf("[writing covmap] before sorting:\n");
   for (auto I = MappingRegions.begin(), E = MappingRegions.end(); I != E; ++I) {
     if (I->Kind == CounterMappingRegion::MCDCBranchRegion) {
-      printf("Branch\n  ID = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+      printf("Branch\n  ID = %u\n  %u:%u -- %u:%u\n  FileID = %u\n  GroupID = %u\n",
         I->MCDCParams.ID,
         I->LineStart, I->ColumnStart,
         I->LineEnd, I->ColumnEnd,
-        I->FileID
+        I->FileID, I->MCDCParams.GroupID
       );
     }
     if (I->Kind == CounterMappingRegion::MCDCDecisionRegion) {
-      printf("Decision\n  NumConditions = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+      printf("Decision\n  NumConditions = %u\n  %u:%u -- %u:%u\n  FileID = %u\n  GroupID = %u\n",
         I->MCDCParams.NumConditions,
         I->LineStart, I->ColumnStart,
         I->LineEnd, I->ColumnEnd,
-        I->FileID
+        I->FileID, I->MCDCParams.GroupID
       );
     }
   }
@@ -261,11 +261,11 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       break;
     case CounterMappingRegion::MCDCBranchRegion:
       // NOTE Observation: at this stage, the regions are intact
-      printf("Branch\n  ID = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+      printf("Branch\n  ID = %u\n  %u:%u -- %u:%u\n  FileID = %u\n  GroupID = %u\n",
         I->MCDCParams.ID,
         I->LineStart, I->ColumnStart,
         I->LineEnd, I->ColumnEnd,
-        I->FileID
+        I->FileID, I->MCDCParams.GroupID
       );
       encodeULEB128(unsigned(I->Kind)
                         << Counter::EncodingCounterTagAndExpansionRegionTagBits,
@@ -277,11 +277,11 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       encodeULEB128(unsigned(I->MCDCParams.FalseID), OS);
       break;
     case CounterMappingRegion::MCDCDecisionRegion:
-      printf("Decision\n  NumConditions = %u\n  %u:%u -- %u:%u\n  FileID = %u\n",
+      printf("Decision\n  NumConditions = %u\n  %u:%u -- %u:%u\n  FileID = %u\n  GroupID = %u\n",
         I->MCDCParams.NumConditions,
         I->LineStart, I->ColumnStart,
         I->LineEnd, I->ColumnEnd,
-        I->FileID
+        I->FileID, I->MCDCParams.GroupID
       );
       encodeULEB128(unsigned(I->Kind)
                         << Counter::EncodingCounterTagAndExpansionRegionTagBits,

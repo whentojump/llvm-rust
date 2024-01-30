@@ -292,7 +292,7 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       encodeULEB128(unsigned(I->MCDCParams.NumConditions), OS);
       break;
     }
-    assert(I->LineStart >= PrevLineStart);
+    assert(I->LineStart >= PrevLineStart); //
     encodeULEB128(I->LineStart - PrevLineStart, OS);
     encodeULEB128(I->ColumnStart, OS);
     assert(I->LineEnd >= I->LineStart);

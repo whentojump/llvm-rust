@@ -185,6 +185,8 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
   // location. Sort by region kinds to ensure stable order for tests.
   llvm::stable_sort(MappingRegions, [](const CounterMappingRegion &LHS,
                                        const CounterMappingRegion &RHS) {
+    // if (LHS.MCDCParams.GroupID != RHS.MCDCParams.GroupID)
+    //   return LHS.MCDCParams.GroupID < RHS.MCDCParams.GroupID;
     if (LHS.FileID != RHS.FileID)
       return LHS.FileID < RHS.FileID;
     if (LHS.startLoc() != RHS.startLoc())

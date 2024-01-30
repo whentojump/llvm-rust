@@ -970,7 +970,7 @@ loadTestingFormat(StringRef Data, StringRef CompilationDir) {
     if (CoverageMappingSize < sizeof(CovMapHeader))
       return make_error<CoverageMapError>(
           coveragemap_error::malformed,
-          "the size of CoverageMapping is teoo small");
+          "the size of CoverageMapping is too small");
   } else if (TestingVersion != uint64_t(TestingFormatVersion::Version1)) {
     return make_error<CoverageMapError>(coveragemap_error::unsupported_version);
   }

@@ -239,10 +239,13 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
     std::vector<CounterMappingRegion> &MappingRegions, unsigned InferredFileID,
     size_t NumFileIDs) {
   uint64_t NumRegions;
+  printf("readMappingRegionsSubArray()\n");
   if (auto Err = readSize(NumRegions))
     return Err;
+  printf("NumRegions = %lu\n", NumRegions);
   unsigned LineStart = 0;
   for (size_t I = 0; I < NumRegions; ++I) {
+    printf("[%lu]\n", I);
     Counter C, C2;
     Counter C3;
     uint64_t BIDX = 0, NC = 0, ID = 0, TID = 0, FID = 0, GID = 0;
@@ -268,11 +271,13 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
     // fields may be read (e.g. BranchRegions have two encoded counters that
     // follow an encoded region kind value).
     if (Tag != Counter::Zero) {
+      printf("case 1\n");
       if (auto Err = decodeCounter(EncodedCounterAndRegion, C))
         return Err;
     } else {
       // Is it an expansion region?
       if (EncodedCounterAndRegion & EncodingExpansionRegionBit) {
+        printf("case 2\n");
         Kind = CounterMappingRegion::ExpansionRegion;
         ExpandedFileID = EncodedCounterAndRegion >>
                          Counter::EncodingCounterTagAndExpansionRegionTagBits;
@@ -283,12 +288,15 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
         switch (EncodedCounterAndRegion >>
                 Counter::EncodingCounterTagAndExpansionRegionTagBits) {
         case CounterMappingRegion::CodeRegion:
+          printf("CodeRegion\n");
           // Don't do anything when we have a code region with a zero counter.
           break;
         case CounterMappingRegion::SkippedRegion:
+          printf("SkippedRegion\n");
           Kind = CounterMappingRegion::SkippedRegion;
           break;
         case CounterMappingRegion::BranchRegion:
+          printf("BranchRegion\n");
           // For a Branch Region, read two successive counters.
           Kind = CounterMappingRegion::BranchRegion;
           if (auto Err = readCounter(C))
@@ -297,6 +305,7 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
             return Err;
           break;
         case CounterMappingRegion::MCDCBranchRegion:
+
           // For a MCDC Branch Region, read two successive counters and 3 IDs.
           Kind = CounterMappingRegion::MCDCBranchRegion;
           if (auto Err = readCounter(C)) // BIDX
@@ -311,8 +320,10 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
             return Err;
           if (auto Err = readIntMax(GID, std::numeric_limits<unsigned>::max()))
             return Err;
+          printf("MCDCBranchRegion ID=%lu GID=%lu\n", ID, GID);
           break;
         case CounterMappingRegion::MCDCDecisionRegion:
+
           Kind = CounterMappingRegion::MCDCDecisionRegion;
           if (auto Err = readIntMax(BIDX, std::numeric_limits<unsigned>::max()))
             return Err;
@@ -329,8 +340,10 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
             return Err;
           if (auto Err = readIntMax(GID, std::numeric_limits<unsigned>::max()))
             return Err;
+          printf("MCDCDecisionRegion NC=%lu GID=%lu\n", NC, GID);
           break;
         default:
+          printf("wrong\n");
           return make_error<CoverageMapError>(coveragemap_error::malformed,
                                               "region kind is incorrect");
         }

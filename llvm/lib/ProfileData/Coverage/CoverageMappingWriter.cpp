@@ -277,6 +277,7 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
       encodeULEB128(unsigned(I->MCDCParams.ID), OS);
       encodeULEB128(unsigned(I->MCDCParams.TrueID), OS);
       encodeULEB128(unsigned(I->MCDCParams.FalseID), OS);
+      encodeULEB128(unsigned(I->MCDCParams.GroupID), OS);
       break;
     case CounterMappingRegion::MCDCDecisionRegion:
       printf("Decision\n  NumConditions = %u\n  %u:%u -- %u:%u\n  FileID = %u\n  GroupID = %u\n",
@@ -290,6 +291,7 @@ void CoverageMappingWriter::write(raw_ostream &OS) {
                     OS);
       encodeULEB128(unsigned(I->MCDCParams.BitmapIdx), OS);
       encodeULEB128(unsigned(I->MCDCParams.NumConditions), OS);
+      encodeULEB128(unsigned(I->MCDCParams.GroupID), OS);
       break;
     }
     assert(I->LineStart >= PrevLineStart); //

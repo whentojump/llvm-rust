@@ -247,7 +247,6 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
   for (size_t I = 0; I < NumRegions; ++I) {
     printf("[%lu]\n", I);
     Counter C, C2;
-    Counter C3;
     uint64_t BIDX = 0, NC = 0, ID = 0, TID = 0, FID = 0, GID = 0;
     CounterMappingRegion::RegionKind Kind = CounterMappingRegion::CodeRegion;
 
@@ -308,9 +307,9 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
 
           // For a MCDC Branch Region, read two successive counters and 3 IDs.
           Kind = CounterMappingRegion::MCDCBranchRegion;
-          if (auto Err = readCounter(C)) // BIDX
+          if (auto Err = readCounter(C))
             return Err;
-          if (auto Err = readCounter(C2)) // NC
+          if (auto Err = readCounter(C2))
             return Err;
           if (auto Err = readIntMax(ID, std::numeric_limits<unsigned>::max()))
             return Err;
@@ -328,15 +327,6 @@ Error RawCoverageMappingReader::readMappingRegionsSubArray(
           if (auto Err = readIntMax(BIDX, std::numeric_limits<unsigned>::max()))
             return Err;
           if (auto Err = readIntMax(NC, std::numeric_limits<unsigned>::max()))
-            return Err;
-          // Dummy read to skip this amount of bytes
-          if (auto Err = readCounter(C3)) // ID
-            return Err;
-          // Dummy read to skip this amount of bytes
-          if (auto Err = readCounter(C3)) // TID
-            return Err;
-          // Dummy read to skip this amount of bytes
-          if (auto Err = readCounter(C3)) // FID
             return Err;
           if (auto Err = readIntMax(GID, std::numeric_limits<unsigned>::max()))
             return Err;

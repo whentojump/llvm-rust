@@ -352,7 +352,7 @@ Interpreter::Parse(llvm::StringRef Code) {
       return std::move(E);
   }
 
-  // Tell the interpreter sliently ignore unused expressions since value
+  // Tell the interpreter silently ignore unused expressions since value
   // printing could cause it.
   getCompilerInstance()->getDiagnostics().setSeverity(
       clang::diag::warn_unused_expr, diag::Severity::Ignored, SourceLocation());

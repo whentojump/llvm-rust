@@ -238,6 +238,9 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
     if (MCDCMaxCond == 0)
       return true;
 
+    llvm::errs() << "dataTraverseStmtPre()\n";
+    S->dumpColor();
+
     /// At the top of the logical operator nest, reset the number of conditions.
     if (LogOpStack.empty())
       NumCond = 0;
@@ -274,6 +277,9 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
     /// If MC/DC is not enabled, MCDCMaxCond will be set to 0. Do nothing.
     if (MCDCMaxCond == 0)
       return true;
+
+    llvm::errs() << "dataTraverseStmtPost()\n";
+    S->dumpColor();
 
     if (const Expr *E = dyn_cast<Expr>(S)) {
       const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens());

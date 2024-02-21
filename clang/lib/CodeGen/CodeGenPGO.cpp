@@ -268,7 +268,7 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
   }
 
   // Hook: dataTraverseStmtPost() is invoked by the AST visitor after visiting
-  // an AST Stmt node.  MC/DC will use it to to signal when the top of a
+  // an AST Stmt node.  MC/DC will use it to signal when the top of a
   // logical operation (boolean expression) nest is encountered.
   bool dataTraverseStmtPost(Stmt *S) {
     /// If MC/DC is not enabled, MCDCMaxCond will be set to 0. Do nothing.

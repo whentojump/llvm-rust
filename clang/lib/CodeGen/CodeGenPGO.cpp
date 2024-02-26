@@ -242,12 +242,21 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
     S->dumpColor();
 
     /// At the top of the logical operator nest, reset the number of conditions.
-    if (LogOpStack.empty())
+    if (LogOpStack.empty()) {
+
       NumCond = 0;
+      SplitNestedLogicalOp = false; // Fix (1/3)
+
+      llvm::errs() << ">>  logical operation top (LogOpStack empty)\n";
+    }
 
     if (const Expr *E = dyn_cast<Expr>(S)) {
       const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens());
       if (BinOp && BinOp->isLogicalOp()) {
+        llvm::errs() << ">>  logical operation\n";
+        if (LogOpStack.empty()) {
+          llvm::errs() << ">>>>    logical operation exact top (isLogicalOp() && LogOpStack empty)\n";
+        }
         /// Check for "split-nested" logical operators. This happens when a new
         /// boolean expression logical-op nest is encountered within an existing
         /// boolean expression, separated by a non-logical operator.  For
@@ -281,14 +290,19 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
     llvm::errs() << "dataTraverseStmtPost()\n";
     S->dumpColor();
 
+    if (LogOpStack.empty())
+      llvm::errs() << ">>  logical operation top (LogOpStack empty)\n";
+
     if (const Expr *E = dyn_cast<Expr>(S)) {
       const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParens());
       if (BinOp && BinOp->isLogicalOp()) {
+        llvm::errs() << ">>  logical operation\n";
         assert(LogOpStack.back() == BinOp);
         LogOpStack.pop_back();
 
         /// At the top of logical operator nest:
         if (LogOpStack.empty()) {
+          llvm::errs() << ">>>>    logical operation exact top (isLogicalOp() && LogOpStack empty)\n";
           /// Was the "split-nested" logical operator case encountered?
           if (SplitNestedLogicalOp) {
             unsigned DiagID = Diag.getCustomDiagID(
@@ -296,8 +310,11 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
                 "unsupported MC/DC boolean expression; "
                 "contains an operation with a nested boolean expression. "
                 "Expression will not be covered");
-            Diag.Report(S->getBeginLoc(), DiagID);
-            return false;
+            // Diag.Report(S->getBeginLoc(), DiagID);
+
+            llvm::errs() << "!!! warning: nested\n";
+
+            return true; // Fix (2/3)
           }
 
           /// Was the maximum number of conditions encountered?
@@ -307,8 +324,11 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
                 "unsupported MC/DC boolean expression; "
                 "number of conditions (%0) exceeds max (%1). "
                 "Expression will not be covered");
-            Diag.Report(S->getBeginLoc(), DiagID) << NumCond << MCDCMaxCond;
-            return false;
+            // Diag.Report(S->getBeginLoc(), DiagID) << NumCond << MCDCMaxCond;
+
+            llvm::errs() << "!!! warning: number of conditions\n";
+
+            return true;  // Fix (3/3)
           }
 
           // Otherwise, allocate the number of bytes required for the bitmap
@@ -333,6 +353,7 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
   /// version so that we facilitate backward compatibility. In addition, in
   /// order to use MC/DC, count the number of total LHS and RHS conditions.
   bool VisitBinaryOperator(BinaryOperator *S) {
+    llvm::errs() << "VisitBinaryOperator()\n";
     if (S->isLogicalOp()) {
       if (CodeGenFunction::isInstrumentedCondition(S->getLHS()))
         NumCond++;
@@ -349,6 +370,7 @@ struct MapRegionCounters : public RecursiveASTVisitor<MapRegionCounters> {
 
   /// Include \p S in the function hash.
   bool VisitStmt(Stmt *S) {
+    llvm::errs() << "VisitStmt() " << S->getStmtClassName() << "\n";
     auto Type = updateCounterMappings(S);
     if (Hash.getHashVersion() != PGO_HASH_V1)
       Type = getHashType(Hash.getHashVersion(), S);

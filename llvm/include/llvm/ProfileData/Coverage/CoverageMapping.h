@@ -352,6 +352,10 @@ struct CounterMappingRegion {
   }
 
   inline LineColPair endLoc() const { return LineColPair(LineEnd, ColumnEnd); }
+
+  inline unsigned getFileID() const { return FileID; }
+
+  inline unsigned getExpandedFileID() const { return ExpandedFileID; }
 };
 
 /// Associates a source range with an execution count.
@@ -387,6 +391,7 @@ struct MCDCRecord {
   using TVPairMap = llvm::DenseMap<unsigned, TVRowPair>;
   using CondIDMap = llvm::DenseMap<unsigned, unsigned>;
   using LineColPairMap = llvm::DenseMap<unsigned, LineColPair>;
+  using FileIDMap = llvm::DenseMap<unsigned, unsigned>;
 
 private:
   CounterMappingRegion Region;
@@ -395,15 +400,20 @@ private:
   BoolVector Folded;
   CondIDMap PosToID;
   LineColPairMap CondLoc;
+  FileIDMap CondFileID;
+  FileIDMap CondExpandedFileID;
+
 
 public:
   MCDCRecord(const CounterMappingRegion &Region, TestVectors &&TV,
              TVPairMap &&IndependencePairs, BoolVector &&Folded,
-             CondIDMap &&PosToID, LineColPairMap &&CondLoc)
+             CondIDMap &&PosToID, LineColPairMap &&CondLoc,
+             FileIDMap &&CondFileID, FileIDMap &&CondExpandedFileID)
       : Region(Region), TV(std::move(TV)),
         IndependencePairs(std::move(IndependencePairs)),
         Folded(std::move(Folded)), PosToID(std::move(PosToID)),
-        CondLoc(std::move(CondLoc)){};
+        CondLoc(std::move(CondLoc)), CondFileID(std::move(CondFileID)),
+        CondExpandedFileID(std::move(CondExpandedFileID)){};
 
   CounterMappingRegion getDecisionRegion() const { return Region; }
   unsigned getNumConditions() const {
@@ -473,7 +483,11 @@ public:
     std::ostringstream OS;
     OS << "Condition C" << Condition + 1 << " --> (";
     OS << CondLoc[Condition].first << ":" << CondLoc[Condition].second;
-    OS << ")\n";
+    OS << ")";
+
+    OS << " " << CondFileID[Condition] << ", " << CondExpandedFileID[Condition];
+    OS << "\n";
+
     return OS.str();
   }
 

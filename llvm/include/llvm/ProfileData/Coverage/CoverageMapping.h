@@ -403,17 +403,38 @@ private:
   FileIDMap CondFileID;
   // FileIDMap CondExpandedFileID;
 
+  /// An (unsigned) FileID -> (std::string) Filename lookup array.
+  ///
+  /// We are passing this information along the calling stack using ArrayRef<StringRef>
+  /// but finally saving it in an std::vector<std::string> member of this struct.
+  /// This field is
+  /// (1) initialized: CoverageMapping::loadFunctionRecord()       ->
+  ///                  CounterMappingContext::evaluateMCDCRegion() ->
+  ///                  processMCDCRecord()                         ->
+  ///                  MCDCRecord ctor
+  /// (2) read from memory and printed to text or HTML:
+  ///                  getConditionHeaderString()
+  ///
+  /// It looks like at the time of (2), the underlying data of ArrayRef<StringRef>
+  /// has running out of its lifecycle so we make a copy at ctor.
+  /// FIXME The current implementation is expensive (std::vector) times expensive
+  /// (std::string).
+  std::vector<std::string> Filenames;
+
 
 public:
   MCDCRecord(const CounterMappingRegion &Region, TestVectors &&TV,
              TVPairMap &&IndependencePairs, BoolVector &&Folded,
              CondIDMap &&PosToID, LineColPairMap &&CondLoc,
-             FileIDMap &&CondFileID)
+             FileIDMap &&CondFileID, ArrayRef<StringRef> Filenames)
       : Region(Region), TV(std::move(TV)),
         IndependencePairs(std::move(IndependencePairs)),
         Folded(std::move(Folded)), PosToID(std::move(PosToID)),
-        CondLoc(std::move(CondLoc)), CondFileID(std::move(CondFileID)){};
-
+        CondLoc(std::move(CondLoc)), CondFileID(std::move(CondFileID)) {
+          for (auto Filename: Filenames) {
+            this->Filenames.push_back(Filename.str());
+          }
+        };
   CounterMappingRegion getDecisionRegion() const { return Region; }
   unsigned getNumConditions() const {
     unsigned NumConditions = Region.getDecisionParams().NumConditions;
@@ -480,10 +501,19 @@ public:
 
   std::string getConditionHeaderString(unsigned Condition) {
     std::ostringstream OS;
+    unsigned FileID = CondFileID[Condition];
+
     OS << "Condition C" << Condition + 1 << " --> (";
     OS << CondLoc[Condition].first << ":" << CondLoc[Condition].second;
     OS << ")";
 
+    if (FileID != 0) {
+      OS << " File " << FileID;
+      if (Filenames[FileID] != Filenames[0])
+        OS << " " << Filenames[FileID];
+      else
+        OS << " (this same file)";
+    }
     // OS << " " << CondFileID[Condition] << ", " << CondExpandedFileID[Condition];
     OS << "\n";
 
@@ -638,7 +668,8 @@ public:
   /// pairs.
   Expected<MCDCRecord>
   evaluateMCDCRegion(const CounterMappingRegion &Region,
-                     ArrayRef<const CounterMappingRegion *> Branches);
+                     ArrayRef<const CounterMappingRegion *> Branches,
+                     ArrayRef<StringRef> Filenames);
 
   unsigned getMaxCounterID(const Counter &C) const;
 };

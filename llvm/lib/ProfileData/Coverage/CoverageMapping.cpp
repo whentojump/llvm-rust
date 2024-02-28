@@ -361,6 +361,8 @@ class MCDCRecordProcessor : NextIDsBuilder, mcdc::TVIdxBuilder {
   /// expression.
   ArrayRef<const CounterMappingRegion *> Branches;
 
+  ArrayRef<StringRef> Filenames;
+
   /// Total number of conditions in the boolean expression.
   unsigned NumConditions;
 
@@ -381,11 +383,12 @@ class MCDCRecordProcessor : NextIDsBuilder, mcdc::TVIdxBuilder {
 public:
   MCDCRecordProcessor(const BitVector &Bitmap,
                       const CounterMappingRegion &Region,
-                      ArrayRef<const CounterMappingRegion *> Branches)
+                      ArrayRef<const CounterMappingRegion *> Branches,
+                      ArrayRef<StringRef> Filenames)
       : NextIDsBuilder(Branches), TVIdxBuilder(this->NextIDs), Bitmap(Bitmap),
         Region(Region), DecisionParams(Region.getDecisionParams()),
-        Branches(Branches), NumConditions(DecisionParams.NumConditions),
-        Folded(NumConditions, false), IndependencePairs(NumConditions) {}
+        Branches(Branches), Filenames(Filenames), NumConditions(DecisionParams.NumConditions),
+        Folded(NumConditions, false), IndependencePairs(NumConditions){}
 
 private:
   // Walk the binary decision diagram and try assigning both false and true to
@@ -517,7 +520,7 @@ public:
     return MCDCRecord(Region, std::move(ExecVectors),
                       std::move(IndependencePairs), std::move(Folded),
                       std::move(PosToID), std::move(CondLoc),
-                      std::move(CondFileID));
+                      std::move(CondFileID), Filenames);
   }
 };
 
@@ -525,9 +528,10 @@ public:
 
 Expected<MCDCRecord> CounterMappingContext::evaluateMCDCRegion(
     const CounterMappingRegion &Region,
-    ArrayRef<const CounterMappingRegion *> Branches) {
+    ArrayRef<const CounterMappingRegion *> Branches,
+    ArrayRef<StringRef> Filenames) {
 
-  MCDCRecordProcessor MCDCProcessor(Bitmap, Region, Branches);
+  MCDCRecordProcessor MCDCProcessor(Bitmap, Region, Branches, Filenames);
   return MCDCProcessor.processMCDCRecord();
 }
 
@@ -887,15 +891,15 @@ Error CoverageMapping::loadFunctionRecord(
     // Since the bitmap identifies the executed test vectors for an MC/DC
     // DecisionRegion, all of the information is now available to process.
     // This is where the bulk of the MC/DC progressing takes place.
-    Expected<MCDCRecord> Record =
-        Ctx.evaluateMCDCRegion(*MCDCDecision, MCDCBranches);
-    if (auto E = Record.takeError()) {
+    Expected<MCDCRecord> MCDCRecord =
+        Ctx.evaluateMCDCRegion(*MCDCDecision, MCDCBranches, Record.Filenames);
+    if (auto E = MCDCRecord.takeError()) {
       consumeError(std::move(E));
       return Error::success();
     }
 
     // Save the MC/DC Record so that it can be visualized later.
-    Function.pushMCDCRecord(std::move(*Record));
+    Function.pushMCDCRecord(std::move(*MCDCRecord));
   }
 
   // Don't create records for (filenames, function) pairs we've already seen.

@@ -485,7 +485,7 @@ public:
     MCDCRecord::CondIDMap PosToID;
     MCDCRecord::LineColPairMap CondLoc;
     MCDCRecord::FileIDMap CondFileID;
-    MCDCRecord::FileIDMap CondExpandedFileID;
+    // MCDCRecord::FileIDMap CondExpandedFileID;
 
     // Walk the Record's BranchRegions (representing Conditions) in order to:
     // - Hash the condition based on its corresponding ID. This will be used to
@@ -502,7 +502,7 @@ public:
       PosToID[I] = BranchParams.ID;
       CondLoc[I] = B->startLoc();
       CondFileID[I] = B->getFileID();
-      CondExpandedFileID[I] = B->getExpandedFileID();
+      // CondExpandedFileID[I] = B->getExpandedFileID();
       Folded[I++] = (B->Count.isZero() && B->FalseCount.isZero());
     }
 
@@ -517,7 +517,7 @@ public:
     return MCDCRecord(Region, std::move(ExecVectors),
                       std::move(IndependencePairs), std::move(Folded),
                       std::move(PosToID), std::move(CondLoc),
-                      std::move(CondFileID), std::move(CondExpandedFileID));
+                      std::move(CondFileID));
   }
 };
 

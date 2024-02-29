@@ -794,9 +794,14 @@ public:
 
 } // namespace
 
+// NOTE Each invocation: handling a function
 Error CoverageMapping::loadFunctionRecord(
-    const CoverageMappingRecord &Record,
+    const CoverageMappingRecord &Record, // NOTE A record for the function
     IndexedInstrProfReader &ProfileReader) {
+  printf("loadFunctionRecord()\n");
+  if (!Record.Filenames.empty())
+    for (auto Filename : Record.Filenames)
+      printf("%s\n", Filename.str().c_str());
   StringRef OrigFuncName = Record.FunctionName;
   if (OrigFuncName.empty())
     return make_error<CoverageMapError>(coveragemap_error::malformed,
@@ -853,6 +858,7 @@ Error CoverageMapping::loadFunctionRecord(
   MCDCDecisionRecorder MCDCDecisions;
   FunctionRecord Function(OrigFuncName, Record.Filenames);
   for (const auto &Region : Record.MappingRegions) {
+    // NOTE Each invocation: handling a region within the funcion
     // MCDCDecisionRegion should be handled first since it overlaps with
     // others inside.
     if (Region.Kind == CounterMappingRegion::MCDCDecisionRegion) {
@@ -891,6 +897,11 @@ Error CoverageMapping::loadFunctionRecord(
     // Since the bitmap identifies the executed test vectors for an MC/DC
     // DecisionRegion, all of the information is now available to process.
     // This is where the bulk of the MC/DC progressing takes place.
+    // NOTE Previously this variable `MCDCRecord` is named `Record`. And one argument
+    //      to this function is also `Record` (a function record). It was fine because
+    //      here we are within a scope created by for loop and curly braces.
+    //      Later, we wanted to reference the outer `Record` for the function thus we
+    //      renamed `Record` for MC/DC to `MCDCRecord`.
     Expected<MCDCRecord> MCDCRecord =
         Ctx.evaluateMCDCRegion(*MCDCDecision, MCDCBranches, Record.Filenames);
     if (auto E = MCDCRecord.takeError()) {
@@ -899,6 +910,7 @@ Error CoverageMapping::loadFunctionRecord(
     }
 
     // Save the MC/DC Record so that it can be visualized later.
+    printf("pushMCDCRecord()\n");
     Function.pushMCDCRecord(std::move(*MCDCRecord));
   }
 

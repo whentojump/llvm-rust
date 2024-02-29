@@ -35,7 +35,7 @@ class CoverageMappingReader;
 struct CoverageMappingRecord {
   StringRef FunctionName;
   uint64_t FunctionHash;
-  ArrayRef<StringRef> Filenames;
+  ArrayRef<StringRef> Filenames; // NOTE For a function, it knows filenames for all its regions
   ArrayRef<CounterExpression> Expressions;
   ArrayRef<CounterMappingRegion> MappingRegions;
 };

@@ -217,6 +217,7 @@ public:
 
 using LineColPair = std::pair<unsigned, unsigned>;
 
+// NOTE A region: can be a decision or a condition
 /// A Counter mapping region associates a source range with a specific counter.
 struct CounterMappingRegion {
   enum RegionKind {
@@ -266,7 +267,9 @@ struct CounterMappingRegion {
     return mcdc::getParams<const mcdc::BranchParameters>(MCDCParams);
   }
 
+  // NOTE For any region, it knows its file ID
   unsigned FileID = 0;
+  // NOTE `ExpandedFileID` is only valid if it's an expansion region
   unsigned ExpandedFileID = 0;
   unsigned LineStart, ColumnStart, LineEnd, ColumnEnd;
 
@@ -374,6 +377,7 @@ struct CountedRegion : public CounterMappingRegion {
         FalseExecutionCount(FalseExecutionCount), Folded(false) {}
 };
 
+// NOTE A decision
 /// MCDC Record grouping all information together.
 struct MCDCRecord {
   /// CondState represents the evaluation of a condition in an executed test
@@ -383,6 +387,8 @@ struct MCDCRecord {
   /// condition across executed test vectors, comparisons against a DontCare
   /// are effectively ignored.
   enum CondState { MCDC_DontCare = -1, MCDC_False = 0, MCDC_True = 1 };
+
+  // NOTE For a decision, it knows every condition's file ID
 
   using TestVector = llvm::SmallVector<CondState>;
   using TestVectors = llvm::SmallVector<TestVector>;
@@ -674,6 +680,7 @@ public:
   unsigned getMaxCounterID(const Counter &C) const;
 };
 
+// ??? Region v.s. Record
 /// Code coverage information for a single function.
 struct FunctionRecord {
   /// Raw function name.
@@ -684,6 +691,8 @@ struct FunctionRecord {
   ///
   /// TODO: Uniquing filenames across all function records may be a performance
   /// optimization.
+  // ??? What's the difference to CoverageMappingRecord
+  // NOTE For a function, it knows filenames for all its regions
   std::vector<std::string> Filenames;
   /// Regions in the function along with their counts.
   std::vector<CountedRegion> CountedRegions;

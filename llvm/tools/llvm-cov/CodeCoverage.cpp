@@ -456,6 +456,8 @@ CodeCoverageTool::createSourceFileView(StringRef SourceFile,
       }
 
       unsigned FileID = Function->CountedRegions.front().FileID;
+      // NOTE
+      // Essentially find the function end so that instantiation views will be displayed there
       unsigned Line = 0;
       for (const auto &CR : Function->CountedRegions)
         if (CR.FileID == FileID)

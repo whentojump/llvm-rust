@@ -1027,6 +1027,9 @@ void SourceCoverageViewHTML::renderMCDCView(raw_ostream &OS, MCDCView &MRV,
 void SourceCoverageViewHTML::renderInstantiationView(raw_ostream &OS,
                                                      InstantiationView &ISV,
                                                      unsigned ViewDepth) {
+  // NOTE Filename comes from
+  // 1. ISV.View->FunctionName
+  // 2. ISV.View->getSourceName()
   OS << BeginExpansionDiv;
   if (!ISV.View)
     OS << BeginSourceNameDiv

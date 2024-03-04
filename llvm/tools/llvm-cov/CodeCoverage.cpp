@@ -396,6 +396,7 @@ CodeCoverageTool::createFunctionView(const FunctionRecord &Function,
   auto View = SourceCoverageView::create(DC.demangle(Function.Name),
                                          SourceBuffer.get(), ViewOpts,
                                          std::move(FunctionCoverage));
+  // NOTE(1/3) Add boxes to function view (not seen yet?)
   attachExpansionSubViews(*View, Expansions, Coverage);
   attachBranchSubViews(*View, DC.demangle(Function.Name), Branches,
                        SourceBuffer.get(), FunctionCoverage);
@@ -420,6 +421,7 @@ CodeCoverageTool::createSourceFileView(StringRef SourceFile,
   auto MCDCRecords = FileCoverage.getMCDCRecords();
   auto View = SourceCoverageView::create(SourceFile, SourceBuffer.get(),
                                          ViewOpts, std::move(FileCoverage));
+  // NOTE(2/3) Add boxes to file view
   attachExpansionSubViews(*View, Expansions, Coverage);
   attachBranchSubViews(*View, SourceFile, Branches, SourceBuffer.get(),
                        FileCoverage);
@@ -445,6 +447,7 @@ CodeCoverageTool::createSourceFileView(StringRef SourceFile,
         auto SubViewMCDCRecords = SubViewCoverage.getMCDCRecords();
         SubView = SourceCoverageView::create(
             Funcname, SourceBuffer.get(), ViewOpts, std::move(SubViewCoverage));
+        // NOTE(3/3) Add boxes to instantiation view
         attachExpansionSubViews(*SubView, SubViewExpansions, Coverage);
         attachBranchSubViews(*SubView, SourceFile, SubViewBranches,
                              SourceBuffer.get(), SubViewCoverage);

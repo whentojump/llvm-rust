@@ -267,6 +267,8 @@ void SourceCoverageView::print(raw_ostream &OS, bool WholeFile,
 
       // Re-render the current line and highlight the expansion range for
       // this subview.
+      // NOTE Replicate the current line for the 2nd, 3rd... SubViews
+      //      For the 1st SubView, the line is already rendered above, thus skipped.
       if (RenderedSubView) {
         ExpansionColumn = NextESV->getStartCol();
         renderExpansionSite(OS, {*LI, LI.line_number()}, *LCI, ExpansionColumn,
@@ -274,11 +276,13 @@ void SourceCoverageView::print(raw_ostream &OS, bool WholeFile,
         renderViewDivider(OS, ViewDepth + 1);
       }
 
+      // NOTE Expansion view (for macros)
       renderExpansionView(OS, *NextESV, ViewDepth + 1);
       RenderedSubView = true;
     }
     for (; NextISV != EndISV && NextISV->Line == LI.line_number(); ++NextISV) {
       renderViewDivider(OS, ViewDepth + 1);
+      // NOTE Instantiation view (for inline functions)
       renderInstantiationView(OS, *NextISV, ViewDepth + 1);
       RenderedSubView = true;
     }

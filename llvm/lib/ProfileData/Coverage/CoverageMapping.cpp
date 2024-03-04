@@ -795,6 +795,11 @@ public:
 } // namespace
 
 // NOTE Each invocation: handling a function
+//      This is invoked for each function *before* any HTML or text is generated.
+//      During the process, there two member fields of class CoverageMapping get
+//      constructed:
+//        std::vector<FunctionRecord> Functions;
+//        DenseMap<size_t, SmallVector<unsigned, 0>> FilenameHash2RecordIndices;
 Error CoverageMapping::loadFunctionRecord(
     const CoverageMappingRecord &Record, // NOTE A record for the function
     IndexedInstrProfReader &ProfileReader) {
@@ -920,8 +925,14 @@ Error CoverageMapping::loadFunctionRecord(
   if (!RecordProvenance[FilenamesHash].insert(hash_value(OrigFuncName)).second)
     return Error::success();
 
+  // NOTE constructing `Functions` vector
   Functions.push_back(std::move(Function));
 
+  // NOTE constructing `FilenameHash2RecordIndices` map
+  //      function --> file1 (where it's defined)
+  //                   file2 (macro from a different file)
+  //                   file3...
+  //      For inline function, it can locate the actual file of definition
   // Performance optimization: keep track of the indices of the function records
   // which correspond to each filename. This can be used to substantially speed
   // up queries for coverage info in a file.
@@ -1430,23 +1441,33 @@ CoverageData CoverageMapping::getCoverageForFile(StringRef Filename) const {
   return FileCoverage;
 }
 
+// NOTE This is invoked for each file *during* the corresponding HTML
+//      or text is being generated.
 std::vector<InstantiationGroup>
 CoverageMapping::getInstantiationGroups(StringRef Filename) const {
   FunctionInstantiationSetCollector InstantiationSetCollector;
   // Look up the function records in the given file. Due to hash collisions on
   // the filename, we may get back some records that are not in the file.
+  // NOTE This will return
+  // #1 Functions defined in this file (including inline functions instantiated
+  //    elsewhere)
+  // #2 Functions that reference macros defined in this file
   ArrayRef<unsigned> RecordIndices =
       getImpreciseRecordIndicesForFilename(Filename);
   for (unsigned RecordIndex : RecordIndices) {
     const FunctionRecord &Function = Functions[RecordIndex];
+    // NOTE
+    // Only case #1 above will be further processed and maintained in instantiation set
     auto MainFileID = findMainViewFileID(Filename, Function);
     if (!MainFileID)
       continue;
+    // NOTE Insert each instantiation
     InstantiationSetCollector.insert(Function, *MainFileID);
   }
 
   std::vector<InstantiationGroup> Result;
   for (auto &InstantiationSet : InstantiationSetCollector) {
+    // NOTE IG is all instantiation(s) for the same function definition
     InstantiationGroup IG{InstantiationSet.first.first,
                           InstantiationSet.first.second,
                           std::move(InstantiationSet.second)};

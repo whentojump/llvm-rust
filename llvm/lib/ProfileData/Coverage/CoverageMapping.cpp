@@ -798,10 +798,10 @@ public:
 Error CoverageMapping::loadFunctionRecord(
     const CoverageMappingRecord &Record, // NOTE A record for the function
     IndexedInstrProfReader &ProfileReader) {
-  printf("loadFunctionRecord()\n");
-  if (!Record.Filenames.empty())
-    for (auto Filename : Record.Filenames)
-      printf("%s\n", Filename.str().c_str());
+  // printf("loadFunctionRecord()\n");
+  // if (!Record.Filenames.empty())
+  //   for (auto Filename : Record.Filenames)
+  //     printf("%s\n", Filename.str().c_str());
   StringRef OrigFuncName = Record.FunctionName;
   if (OrigFuncName.empty())
     return make_error<CoverageMapError>(coveragemap_error::malformed,
@@ -910,7 +910,7 @@ Error CoverageMapping::loadFunctionRecord(
     }
 
     // Save the MC/DC Record so that it can be visualized later.
-    printf("pushMCDCRecord()\n");
+    // printf("pushMCDCRecord()\n");
     Function.pushMCDCRecord(std::move(*MCDCRecord));
   }
 

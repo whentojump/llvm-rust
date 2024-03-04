@@ -247,6 +247,7 @@ void SourceCoverageView::print(raw_ostream &OS, bool WholeFile,
       renderLineCoverageColumn(OS, *LCI);
 
     // If there are expansion subviews, we want to highlight the first one.
+    // NOTE Get the column number of expansion (macro), in order to highlight it
     unsigned ExpansionColumn = 0;
     if (NextESV != EndESV && NextESV->getLine() == LI.line_number() &&
         getOptions().Colors)

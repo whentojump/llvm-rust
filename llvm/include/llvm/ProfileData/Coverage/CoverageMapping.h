@@ -399,6 +399,9 @@ struct MCDCRecord {
   using LineColPairMap = llvm::DenseMap<unsigned, LineColPair>;
   using FileIDMap = llvm::DenseMap<unsigned, unsigned>;
 
+  // FIXME should not be public
+  std::string FuncName;
+
 private:
   CounterMappingRegion Region;
   TestVectors TV;

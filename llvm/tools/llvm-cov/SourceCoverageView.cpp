@@ -163,8 +163,9 @@ SourceCoverageView::create(StringRef SourceName, const MemoryBuffer &File,
 
 std::string SourceCoverageView::getSourceName() const {
   SmallString<128> SourceText(SourceName);
-  sys::path::remove_dots(SourceText, /*remove_dot_dot=*/true);
-  sys::path::native(SourceText);
+  // sys::path::remove_dots(SourceText, /*remove_dot_dot=*/true);
+  // sys::path::native(SourceText);
+  // sys::path::replace_path_prefix(SourceText, "/users/wtj/workdir/mcdc-examples", "");
   return std::string(SourceText);
 }
 
@@ -202,6 +203,11 @@ void SourceCoverageView::print(raw_ostream &OS, bool WholeFile,
 
   if (ShowSourceName)
     renderSourceName(OS, WholeFile);
+  // TODO:
+  // 1. (Less important) How do we shorten this? how to get the common path?
+  // 2. Where does SourceName for SubViews (filename:funcname) come from? -- already in the profile data
+  // 3. Can instantiation views' func name be more detailed? E.g. full file path, line number?
+  // 3. Can MC/DC views also include func name?
 
   renderTableHeader(OS, (ViewDepth > 0) ? 0 : getFirstUncoveredLineNo(),
                     ViewDepth);
@@ -292,8 +298,12 @@ void SourceCoverageView::print(raw_ostream &OS, bool WholeFile,
       renderBranchView(OS, *NextBRV, ViewDepth + 1);
       RenderedSubView = true;
     }
+    // NOTE Each iteration of the outer loop: each line
     for (; NextMSV != EndMSV && NextMSV->Line == LI.line_number(); ++NextMSV) {
       renderViewDivider(OS, ViewDepth + 1);
+      // NOTE This loop usually has only one iteration
+      //      Within the function however, may be multiple iterations:
+      //      The view could contain multiple MCDCRecords
       renderMCDCView(OS, *NextMSV, ViewDepth + 1);
       RenderedSubView = true;
     }

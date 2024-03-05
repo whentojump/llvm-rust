@@ -33,6 +33,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -1408,6 +1409,7 @@ static bool isExpansion(const CountedRegion &R, unsigned FileID) {
 }
 
 CoverageData CoverageMapping::getCoverageForFile(StringRef Filename) const {
+  // printf("getCoverageForFile() %s\n", Filename.str().c_str());
   CoverageData FileCoverage(Filename);
   std::vector<CountedRegion> Regions;
 
@@ -1437,6 +1439,8 @@ CoverageData CoverageMapping::getCoverageForFile(StringRef Filename) const {
     //       2. Front end
     for (auto MR : Function.MCDCRecords) {
       if (FileIDs.test(MR.getDecisionRegion().FileID)) {
+        // printf("(In function %s)\n", Function.Name.c_str());
+        // printf("MC/DC L%u\n", MR.getDecisionRegion().LineStart);
         MR.FuncName = Function.Name;
         FileCoverage.MCDCRecords.push_back(MR);
       }
@@ -1486,6 +1490,8 @@ CoverageMapping::getInstantiationGroups(StringRef Filename) const {
 
 CoverageData
 CoverageMapping::getCoverageForFunction(const FunctionRecord &Function) const {
+
+  // printf("getCoverageForFunction() %s\n", Function.Name.c_str());
   auto MainFileID = findMainViewFileID(Function);
   if (!MainFileID)
     return CoverageData();
@@ -1504,9 +1510,12 @@ CoverageMapping::getCoverageForFunction(const FunctionRecord &Function) const {
       FunctionCoverage.BranchRegions.push_back(CR);
 
   // Capture MCDC records specific to the function.
-  for (const auto &MR : Function.MCDCRecords)
-    if (MR.getDecisionRegion().FileID == *MainFileID)
+  for (const auto &MR : Function.MCDCRecords) {
+    if (MR.getDecisionRegion().FileID == *MainFileID) {
       FunctionCoverage.MCDCRecords.push_back(MR);
+      // printf("MC/DC L%u\n", MR.getDecisionRegion().LineStart);
+    }
+  }
 
   LLVM_DEBUG(dbgs() << "Emitting segments for function: " << Function.Name
                     << "\n");

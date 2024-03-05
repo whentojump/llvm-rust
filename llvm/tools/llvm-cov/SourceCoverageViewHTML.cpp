@@ -981,7 +981,7 @@ void SourceCoverageViewHTML::renderBranchView(raw_ostream &OS, BranchView &BRV,
 }
 
 void SourceCoverageViewHTML::renderMCDCView(raw_ostream &OS, MCDCView &MRV,
-                                            unsigned ViewDepth) {
+                                            unsigned ViewDepth, std::string FileName) {
   for (auto &Record : MRV.Records) {
     OS << BeginExpansionDiv;
     OS << BeginPre;
@@ -1009,6 +1009,13 @@ void SourceCoverageViewHTML::renderMCDCView(raw_ostream &OS, MCDCView &MRV,
     for (unsigned i = 0; i < Record.getNumConditions(); i++) {
       OS << "     " << Record.getConditionHeaderString(i);
     }
+
+    // std::string TargetName = "L" + LineNoStr;
+    // std::string LineNoStr = Twine(DecisionRegion.LineStart).str();
+
+    // OS << a("#" + TargetName, tag("span", LineNoStr + ":" + ColNoStr));
+    // OS << a("#", tag("span", Twine(CondLoc[Condition].first) + ":" + Twine(CondLoc[Condition].second)));
+
     OS << "\n";
     OS << "  Executed MC/DC Test Vectors:\n\n     ";
     OS << Record.getTestVectorHeaderString();

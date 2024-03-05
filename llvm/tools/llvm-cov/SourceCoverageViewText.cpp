@@ -338,7 +338,7 @@ void SourceCoverageViewText::renderBranchView(raw_ostream &OS, BranchView &BRV,
 }
 
 void SourceCoverageViewText::renderMCDCView(raw_ostream &OS, MCDCView &MRV,
-                                            unsigned ViewDepth) {
+                                            unsigned ViewDepth, std::string FileName) {
   for (auto &Record : MRV.Records) {
     renderLinePrefix(OS, ViewDepth);
     OS << "---> MC/DC Decision Region (";

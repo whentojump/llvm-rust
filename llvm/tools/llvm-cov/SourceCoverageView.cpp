@@ -301,10 +301,11 @@ void SourceCoverageView::print(raw_ostream &OS, bool WholeFile,
     // NOTE Each iteration of the outer loop: each line
     for (; NextMSV != EndMSV && NextMSV->Line == LI.line_number(); ++NextMSV) {
       renderViewDivider(OS, ViewDepth + 1);
+
       // NOTE This loop usually has only one iteration
       //      Within the function however, may be multiple iterations:
       //      The view could contain multiple MCDCRecords
-      renderMCDCView(OS, *NextMSV, ViewDepth + 1);
+      renderMCDCView(OS, *NextMSV, ViewDepth + 1, getSourceName());
       RenderedSubView = true;
     }
     if (RenderedSubView)

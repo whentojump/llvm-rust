@@ -92,7 +92,7 @@ class SourceCoverageViewHTML : public SourceCoverageView {
                         unsigned ViewDepth) override;
 
   void renderMCDCView(raw_ostream &OS, MCDCView &BRV,
-                      unsigned ViewDepth) override;
+                      unsigned ViewDepth, std::string FileName) override;
 
   void renderInstantiationView(raw_ostream &OS, InstantiationView &ISV,
                                unsigned ViewDepth) override;

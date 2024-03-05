@@ -255,7 +255,7 @@ protected:
 
   /// Render an MCDC view.
   virtual void renderMCDCView(raw_ostream &OS, MCDCView &BRV,
-                              unsigned ViewDepth) = 0;
+                              unsigned ViewDepth, std::string FileName) = 0;
 
   /// Render \p Title, a project title if one is available, and the
   /// created time.

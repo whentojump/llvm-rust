@@ -406,6 +406,8 @@ CodeCoverageTool::createFunctionView(const FunctionRecord &Function,
   return View;
 }
 
+// NOTE This is invoked for each file *during* the corresponding HTML
+//      or text is being generated.
 std::unique_ptr<SourceCoverageView>
 CodeCoverageTool::createSourceFileView(StringRef SourceFile,
                                        const CoverageMapping &Coverage) {

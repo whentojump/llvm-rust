@@ -17,6 +17,7 @@
 #include "Program.h"
 #include "clang/AST/Expr.h"
 #include "clang/Basic/TargetInfo.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace clang;
 using namespace clang::interp;
@@ -38,12 +39,15 @@ bool Context::isPotentialConstantExpr(State &Parent, const FunctionDecl *FD) {
   return Func->isConstexpr();
 }
 
+// NOTE tells if const-folded (5)
 bool Context::evaluateAsRValue(State &Parent, const Expr *E, APValue &Result) {
   ++EvalID;
   bool Recursing = !Stk.empty();
   Compiler<EvalEmitter> C(*this, *P, Parent, Stk);
 
   auto Res = C.interpretExpr(E, /*ConvertResultToRValue=*/E->isGLValue());
+
+  // Ptr<BinaryOperator>::type BinOp = dyn_cast<BinaryOperator>(E);
 
   if (Res.isInvalid()) {
     C.cleanup();

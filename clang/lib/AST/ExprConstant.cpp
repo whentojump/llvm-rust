@@ -15812,6 +15812,7 @@ static bool EvaluateInPlace(APValue &Result, EvalInfo &Info, const LValue &This,
   return Evaluate(Result, Info, E);
 }
 
+// NOTE tells if const-folded (4)
 /// EvaluateAsRValue - Try to evaluate this expression, performing an implicit
 /// lvalue-to-rvalue cast if it is an lvalue.
 static bool EvaluateAsRValue(EvalInfo &Info, const Expr *E, APValue &Result) {
@@ -15894,6 +15895,7 @@ static bool hasUnacceptableSideEffect(Expr::EvalStatus &Result,
          (SEK < Expr::SE_AllowUndefinedBehavior && Result.HasUndefinedBehavior);
 }
 
+// NOTE tells if const-folded (3)
 static bool EvaluateAsRValue(const Expr *E, Expr::EvalResult &Result,
                              const ASTContext &Ctx, EvalInfo &Info) {
   assert(!E->isValueDependent());
@@ -15904,11 +15906,13 @@ static bool EvaluateAsRValue(const Expr *E, Expr::EvalResult &Result,
   return EvaluateAsRValue(Info, E, Result.Val);
 }
 
+// NOTE tells if const-folded (2)
 static bool EvaluateAsInt(const Expr *E, Expr::EvalResult &ExprResult,
                           const ASTContext &Ctx,
                           Expr::SideEffectsKind AllowSideEffects,
                           EvalInfo &Info) {
   assert(!E->isValueDependent());
+  printf(" EvaluateAsInt()\n");
   if (!E->getType()->isIntegralOrEnumerationType())
     return false;
 
@@ -15917,6 +15921,7 @@ static bool EvaluateAsInt(const Expr *E, Expr::EvalResult &ExprResult,
       hasUnacceptableSideEffect(ExprResult, AllowSideEffects))
     return false;
 
+  printf("  -->true\n");
   return true;
 }
 
@@ -15963,6 +15968,7 @@ bool Expr::EvaluateAsBooleanCondition(bool &Result, const ASTContext &Ctx,
          HandleConversionToBool(Scratch.Val, Result);
 }
 
+// NOTE tells if const-folded (1)
 bool Expr::EvaluateAsInt(EvalResult &Result, const ASTContext &Ctx,
                          SideEffectsKind AllowSideEffects,
                          bool InConstantContext) const {

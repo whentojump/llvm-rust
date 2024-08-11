@@ -5136,7 +5136,7 @@ Value *ScalarExprEmitter::VisitBinLOr(const BinaryOperator *E) {
 
 Value *ScalarExprEmitter::VisitBinComma(const BinaryOperator *E) {
   CGF.EmitIgnoredExpr(E->getLHS());
-  CGF.EnsureInsertPoint();
+  CGF.EnsureInsertPoint(); // NOTE comma??s\?
   return Visit(E->getRHS());
 }
 

@@ -37,6 +37,7 @@ EvalEmitter::~EvalEmitter() {
 /// pointing into a Block in the EvalEmitter.
 void EvalEmitter::cleanup() { S.cleanup(); }
 
+// NOTE tells if const-folded (6)
 EvaluationResult EvalEmitter::interpretExpr(const Expr *E,
                                             bool ConvertResultToRValue) {
   S.setEvalLocation(E->getExprLoc());

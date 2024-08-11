@@ -721,6 +721,7 @@ struct FunctionRecord {
                                         HasSingleByteCoverage);
       // If both counters are hard-coded to zero, then this region represents a
       // constant-folded branch.
+      // NOTE counter is of ZERO type => folded
       if (Region.Count.isZero() && Region.FalseCount.isZero())
         CountedBranchRegions.back().Folded = true;
       return;

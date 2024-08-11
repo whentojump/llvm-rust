@@ -3101,6 +3101,7 @@ template <class Emitter> bool Compiler<Emitter>::delegate(const Expr *E) {
   return this->Visit(E);
 }
 
+// NOTE tells if const-folded (8)
 template <class Emitter> bool Compiler<Emitter>::visit(const Expr *E) {
   if (E->getType().isNull())
     return false;
@@ -3426,6 +3427,7 @@ const Function *Compiler<Emitter>::getFunction(const FunctionDecl *FD) {
   return Ctx.getOrCreateFunction(FD);
 }
 
+// NOTE tells if const-folded (7)
 template <class Emitter> bool Compiler<Emitter>::visitExpr(const Expr *E) {
   LocalScope<Emitter> RootScope(this);
   // Void expressions.

@@ -1098,8 +1098,9 @@ struct CounterCoverageMappingBuilder
     return ExitCount;
   }
 
-  /// Determine whether the given condition can be constant folded.
+  /// NOTE Determine whether the given condition can be constant folded.
   bool ConditionFoldsToBool(const Expr *Cond) {
+    printf("ConditionFoldsToBool()\n");
     Expr::EvalResult Result;
     return (Cond->EvaluateAsInt(Result, CVM.getCodeGenModule().getContext()));
   }

@@ -41,6 +41,7 @@ public:
   return static_cast<ImplClass*>(this)->Visit ## NAME( \
     static_cast<PTR(CLASS)>(S), std::forward<ParamTys>(P)...)
 
+  // NOTE tells if const-folded (9)
   RetTy Visit(PTR(Stmt) S, ParamTys... P) {
     // If we have a binary expr, dispatch to the subcode of the binop.  A smart
     // optimizer (e.g. LLVM) will fold this comparison into the switch stmt
@@ -81,7 +82,7 @@ public:
       case BO_AndAssign: DISPATCH(BinAndAssign, CompoundAssignOperator);
       case BO_OrAssign:  DISPATCH(BinOrAssign,  CompoundAssignOperator);
       case BO_XorAssign: DISPATCH(BinXorAssign, CompoundAssignOperator);
-      case BO_Comma:     DISPATCH(BinComma,     BinaryOperator);
+      case BO_Comma:     DISPATCH(BinComma,     BinaryOperator); // TODO
       }
     } else if (PTR(UnaryOperator) UnOp = dyn_cast<UnaryOperator>(S)) {
       switch (UnOp->getOpcode()) {

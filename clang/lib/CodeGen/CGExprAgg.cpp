@@ -976,7 +976,7 @@ void AggExprEmitter::VisitObjCMessageExpr(ObjCMessageExpr *E) {
   });
 }
 
-void AggExprEmitter::VisitBinComma(const BinaryOperator *E) {
+void AggExprEmitter::VisitBinComma(const BinaryOperator *E) { // NOTE comma
   CGF.EmitIgnoredExpr(E->getLHS());
   Visit(E->getRHS());
 }

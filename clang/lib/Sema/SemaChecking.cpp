@@ -9940,10 +9940,13 @@ static int classifyConstantValue(Expr *Constant) {
   return ConstantValueKind::Miscellaneous;
 }
 
+// NOTE Some warning about constant results;
+// ideally we need this in covmapping emission
 static bool CheckTautologicalComparison(Sema &S, BinaryOperator *E,
                                         Expr *Constant, Expr *Other,
                                         const llvm::APSInt &Value,
                                         bool RhsConstant) {
+  printf("CheckTautologicalComparison()\n");
   if (S.inTemplateInstantiation())
     return false;
 
@@ -11510,6 +11513,7 @@ static bool IsInAnyMacroBody(const SourceManager &SM, SourceLocation Loc) {
 void Sema::DiagnoseAlwaysNonNullPointer(Expr *E,
                                         Expr::NullPointerConstantKind NullKind,
                                         bool IsEqual, SourceRange Range) {
+  printf("DiagnoseAlwaysNonNullPointer()\n");
   if (!E)
     return;
 
@@ -11651,6 +11655,7 @@ void Sema::DiagnoseAlwaysNonNullPointer(Expr *E,
   llvm::raw_string_ostream S(Str);
   E->printPretty(S, nullptr, getPrintingPolicy());
 
+  // NOTE
   unsigned DiagID = IsCompare ? diag::warn_null_pointer_compare
                               : diag::warn_impcast_pointer_to_bool;
   enum {
